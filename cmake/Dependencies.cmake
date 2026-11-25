@@ -45,6 +45,8 @@ ExternalProject_Add(upstream_bimg
         INSTALL_COMMAND ""
 )
 
+set(BGFX_OUT_LIBS "")
+
 if(ANDROID)
     set(BGFX_GEN_DIR "${BGFX_DIR}/.build/projects/gmake-android-arm64")
     set(BGFX_OUT_DIR "${BGFX_DIR}/.build/android-arm64/bin")
@@ -52,8 +54,19 @@ if(ANDROID)
     set(BGFX_LIB_EXT ".a")
     set(BGFX_CONFIG_SUFFIX "Release")
 
-    set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-android=24 --gcc=android-arm64 gmake)
-    set(BGFX_BUILD_CMD "${CMAKE_MAKE_PROGRAM}" -C "${BGFX_GEN_DIR}" config=release64 bgfx bimg bx)
+    if(CMAKE_HOST_WIN32)
+        set(GENIE_EXE "${BX_DIR}/tools/bin/windows/genie.exe")
+        set(NDK_MAKE_EXE "${CMAKE_ANDROID_NDK}/prebuilt/windows-x86_64/bin/make.exe")
+    elseif(CMAKE_HOST_APPLE)
+        set(GENIE_EXE "${BX_DIR}/tools/bin/darwin/genie")
+        set(NDK_MAKE_EXE "make")
+    else()
+        set(GENIE_EXE "${BX_DIR}/tools/bin/linux/genie")
+        set(NDK_MAKE_EXE "make")
+    endif()
+
+    set(BGFX_GENIE_CMD "${GENIE_EXE}" --with-android=24 --gcc=android-arm64 gmake)
+    set(BGFX_BUILD_CMD ${CMAKE_COMMAND} -E env "ANDROID_NDK_ROOT=${CMAKE_ANDROID_NDK}" "${NDK_MAKE_EXE}" -C "${BGFX_GEN_DIR}" config=release64 bgfx bimg bx -j8)
 elseif(MINGW)
     get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
     get_filename_component(MINGW_ROOT_DIR "${MINGW_BIN_DIR}" DIRECTORY)
@@ -85,16 +98,22 @@ else()
     set(BGFX_BUILD_CMD msbuild "${BGFX_GEN_DIR}/bgfx.sln" /p:Configuration=Release /p:Platform=x64 /t:bgfx;bimg;bx /m)
 endif()
 
+set(BGFX_OUT_LIBS
+        "${BGFX_OUT_DIR}/${BGFX_LIB_PREFIX}bgfx${BGFX_CONFIG_SUFFIX}${BGFX_LIB_EXT}"
+        "${BGFX_OUT_DIR}/${BGFX_LIB_PREFIX}bimg${BGFX_CONFIG_SUFFIX}${BGFX_LIB_EXT}"
+        "${BGFX_OUT_DIR}/${BGFX_LIB_PREFIX}bx${BGFX_CONFIG_SUFFIX}${BGFX_LIB_EXT}"
+)
 
 ExternalProject_Add(upstream_bgfx_build
         DEPENDS upstream_bx upstream_bimg
-        GIT_REPOSITORY https://github.com/bkaradzic/bgfx.git
+        GIT_REPOSITORY https://github.com/bkaradzic/bgfx
         GIT_TAG master
         GIT_SHALLOW TRUE
         SOURCE_DIR "${BGFX_DIR}"
         BUILD_IN_SOURCE 1
         CONFIGURE_COMMAND ${BGFX_GENIE_CMD}
         BUILD_COMMAND ${BGFX_BUILD_CMD}
+        BUILD_BYPRODUCTS ${BGFX_OUT_LIBS}
         INSTALL_COMMAND ""
 )
 
