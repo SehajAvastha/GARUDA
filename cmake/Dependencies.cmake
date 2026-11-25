@@ -16,23 +16,88 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(SDL3)
 
-# Rendering - BGFX
-set(BGFX_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-set(BGFX_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-set(BGFX_INSTALL OFF CACHE BOOL "" FORCE)
+# Rendering - BGFX w/ GENie
+include(ExternalProject)
 
-if(ANDROID)
-    set(BGFX_BUILD_TOOLS OFF CACHE BOOL "" FORCE)
-else()
-    set(BGFX_BUILD_TOOLS ON CACHE BOOL "" FORCE)
-endif()
-FetchContent_Declare(
-        bgfx
-        GIT_REPOSITORY https://github.com/bkaradzic/bgfx
+set(BGFX_ROOT_DIR "${CMAKE_BINARY_DIR}/_deps/bgfx_upstream")
+set(BX_DIR "${BGFX_ROOT_DIR}/bx")
+set(BIMG_DIR "${BGFX_ROOT_DIR}/bimg")
+set(BGFX_DIR "${BGFX_ROOT_DIR}/bgfx")
+
+ExternalProject_Add(upstream_bx
+        GIT_REPOSITORY https://github.com/bkaradzic/bx.git
         GIT_TAG master
         GIT_SHALLOW TRUE
+        SOURCE_DIR "${BX_DIR}"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
 )
-FetchContent_MakeAvailable(bgfx)
+
+ExternalProject_Add(upstream_bimg
+        DEPENDS upstream_bx
+        GIT_REPOSITORY https://github.com/bkaradzic/bimg.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${BIMG_DIR}"
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+)
+
+if(ANDROID)
+    set(BGFX_GEN_DIR "${BGFX_DIR}/.build/projects/gmake-android-arm64")
+    set(BGFX_OUT_DIR "${BGFX_DIR}/.build/android-arm64/bin")
+    set(BGFX_LIB_PREFIX "lib")
+    set(BGFX_LIB_EXT ".a")
+    set(BGFX_CONFIG_SUFFIX "Release")
+
+    set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-android=24 --gcc=android-arm64 gmake)
+    set(BGFX_BUILD_CMD "${CMAKE_MAKE_PROGRAM}" -C "${BGFX_GEN_DIR}" config=release64 bgfx bimg bx)
+else()
+    set(BGFX_GEN_DIR "${BGFX_DIR}/.build/projects/vs2022")
+    set(BGFX_OUT_DIR "${BGFX_DIR}/.build/win64_vs2022/bin")
+    set(BGFX_LIB_PREFIX "")
+    set(BGFX_LIB_EXT ".lib")
+    set(BGFX_CONFIG_SUFFIX "Release")
+
+    set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-windows=10.0 --with-tools vs2022)
+    set(BGFX_BUILD_CMD msbuild "${BGFX_GEN_DIR}/bgfx.sln" /p:Configuration=Release /p:Platform=x64 /t:bgfx;bimg;bx /m)
+endif()
+
+ExternalProject_Add(upstream_bgfx_build
+        DEPENDS upstream_bx upstream_bimg
+        GIT_REPOSITORY https://github.com/bkaradzic/bgfx.git
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        SOURCE_DIR "${BGFX_DIR}"
+        BUILD_IN_SOURCE 1
+        CONFIGURE_COMMAND ${BGFX_GENIE_CMD}
+        BUILD_COMMAND ${BGFX_BUILD_CMD}
+        INSTALL_COMMAND ""
+)
+
+function(add_bgfx_imported_lib TARGET_NAME LIB_BASE_NAME)
+    add_library(${TARGET_NAME} STATIC IMPORTED GLOBAL)
+    add_dependencies(${TARGET_NAME} upstream_bgfx_build)
+    file(MAKE_DIRECTORY "${BX_DIR}/include" "${BIMG_DIR}/include" "${BGFX_DIR}/include")
+    set_target_properties(${TARGET_NAME} PROPERTIES
+            IMPORTED_LOCATION "${BGFX_OUT_DIR}/${BGFX_LIB_PREFIX}${LIB_BASE_NAME}${BGFX_CONFIG_SUFFIX}${BGFX_LIB_EXT}"
+            INTERFACE_INCLUDE_DIRECTORIES "${BGFX_DIR}/include;${BIMG_DIR}/include;${BX_DIR}/include"
+    )
+endfunction()
+
+add_bgfx_imported_lib(bx bx)
+add_bgfx_imported_lib(bimg bimg)
+add_bgfx_imported_lib(bgfx bgfx)
+
+if(WIN32 AND NOT ANDROID)
+    target_link_libraries(bgfx INTERFACE gdi32 psapi)
+    target_compile_definitions(bx INTERFACE BX_CONFIG_DEBUG=0)
+elseif(ANDROID)
+    target_link_libraries(bgfx INTERFACE EGL GLESv2)
+    target_compile_definitions(bx INTERFACE BX_CONFIG_DEBUG=0)
+endif()
 
 # 3D Physics - Jolt Physics
 set(TARGET_UNIT_TESTS OFF CACHE BOOL "" FORCE)
@@ -97,7 +162,7 @@ add_library(imgui STATIC
         "${imgui_SOURCE_DIR}/imgui_draw.cpp"
         "${imgui_SOURCE_DIR}/imgui_tables.cpp"
         "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
-        "${imgui_SOURCE_DIR}/backends/imgui_imp_sdl3.cpp"
+        "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
 )
 
 target_include_directories(imgui PUBLIC

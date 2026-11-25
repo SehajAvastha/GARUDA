@@ -1,5 +1,5 @@
 file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
-        "Sources/*.cpp"
+        "Source/*.cpp"
         "Include/*.hpp"
 )
 
