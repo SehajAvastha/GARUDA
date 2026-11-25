@@ -16,9 +16,9 @@ target_compile_definitions(GarudaEngine PUBLIC
 
 target_link_libraries(GarudaEngine PUBLIC
         SDL3::SDL3
-        bx
         bgfx
         bimg
+        bx
         Jolt
         box2d
         glm::glm

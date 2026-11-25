@@ -7,10 +7,10 @@
 
 namespace Garuda {
     void Initialize() {
-        SDL_LOG("GARUDA Engine Initialized!");
+        SDL_Log("GARUDA Engine Initialized!");
     }
 
     void Shutdown() {
-        SDL_LOG("GARUDA Engien Shutdown.");
+        SDL_Log("GARUDA Engine Shutdown.");
     }
 }

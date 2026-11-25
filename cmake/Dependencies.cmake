@@ -54,7 +54,27 @@ if(ANDROID)
 
     set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-android=24 --gcc=android-arm64 gmake)
     set(BGFX_BUILD_CMD "${CMAKE_MAKE_PROGRAM}" -C "${BGFX_GEN_DIR}" config=release64 bgfx bimg bx)
+elseif(MINGW)
+    get_filename_component(MINGW_BIN_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    get_filename_component(MINGW_ROOT_DIR "${MINGW_BIN_DIR}" DIRECTORY)
+
+    set(BGFX_GEN_DIR "${BGFX_DIR}/.build/projects/gmake-mingw-gcc")
+    set(BGFX_OUT_DIR "${BGFX_DIR}/.build/win64_mingw-gcc/bin")
+    set(BGFX_LIB_PREFIX "lib")
+    set(BGFX_LIB_EXT ".a")
+    set(BGFX_CONFIG_SUFFIX "Release")
+
+    set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --gcc=mingw-gcc --with-tools gmake)
+    set(BGFX_BUILD_CMD "${CMAKE_MAKE_PROGRAM}" -C "${BGFX_GEN_DIR}"
+            MINGW="${MINGW_ROOT_DIR}"
+            CC="${CMAKE_C_COMPILER}"
+            CXX="${CMAKE_CXX_COMPILER}"
+            AR="${CMAKE_AR}"
+            config=release64
+            bgfx bimg bx
+    )
 else()
+    # Visual Studio MSVC build via GENie -> MSBuild
     set(BGFX_GEN_DIR "${BGFX_DIR}/.build/projects/vs2022")
     set(BGFX_OUT_DIR "${BGFX_DIR}/.build/win64_vs2022/bin")
     set(BGFX_LIB_PREFIX "")
@@ -64,6 +84,7 @@ else()
     set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-windows=10.0 --with-tools vs2022)
     set(BGFX_BUILD_CMD msbuild "${BGFX_GEN_DIR}/bgfx.sln" /p:Configuration=Release /p:Platform=x64 /t:bgfx;bimg;bx /m)
 endif()
+
 
 ExternalProject_Add(upstream_bgfx_build
         DEPENDS upstream_bx upstream_bimg
