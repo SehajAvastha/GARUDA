@@ -1,8 +1,6 @@
 # GARUDA
 ## GARUDA - Game And Rendering Unified Development Architecture
 
----
-
 > GARUDA is a C++20 cross-platform game engine and development architecture built by and for "Studios SehajAvastha", engineered primarily for <ins>WINDOWS</ins> and <ins>ANDROID</ins>
 
 ---
