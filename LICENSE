@@ -1,21 +1,40 @@
-MIT License
+GARUDA ENGINE PROPRIETARY LICENSE
+Copyright (c) 2026 [Your Full Legal Name]. All Rights Reserved.
 
-Copyright (c) 2026 Iteration-0
+1. PROPRIETARY OWNERSHIP AND COPYRIGHT
+The GARUDA Engine software, including all source code, header files, object code,
+compiled binaries, shaders, build scripts, tools, editor components, documentation,
+artwork, and related materials (collectively, the "Software"), is the confidential,
+proprietary, and trade secret property of [Your Full Legal Name] ("Owner").
+The Software is protected by copyright laws in India, international copyright
+treaties, and other applicable intellectual property laws.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+2. NO LICENSE GRANTED (ALL RIGHTS RESERVED)
+Except as expressly authorized in a separate, written, and signed license agreement
+executed by the Owner, NO person or entity is granted any right or license to:
+  (a) use, execute, run, or deploy the Software for any personal, educational,
+      research, or commercial purpose;
+  (b) copy, reproduce, duplicate, mirror, or archive the Software in whole or in part;
+  (c) modify, adapt, translate, reverse engineer, decompile, disassemble, or create
+      derivative works based upon the Software;
+  (d) distribute, publish, sublicense, rent, lease, lend, sell, transfer, or make
+      the Software available to any third party, whether publicly or privately.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+3. CONFIDENTIALITY
+Any unauthorized access to or possession of the Software does not grant any rights
+whatsoever. Anyone who obtains access to the Software without prior written
+authorization from the Owner must immediately delete and destroy all copies in their
+possession and notify the Owner.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+5. THIRD-PARTY COMPONENTS
+The Software integrates or links against third-party open-source libraries (including,
+without limitation, SDL3, bgfx, bimg, bx, Jolt Physics, Box2D, GLM, stb, and
+Dear ImGui). Those third-party libraries remain subject to their respective open-source
+licenses, which apply strictly to those unmodified third-party components and do not
+extend to any part of the GARUDA Engine.
+
+6. DISCLAIMER OF WARRANTY AND LIMITATION OF LIABILITY
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE OWNER BE LIABLE FOR
+ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM UNAUTHORIZED USE OF THE SOFTWARE.
