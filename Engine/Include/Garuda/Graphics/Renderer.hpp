@@ -18,7 +18,11 @@ namespace Garuda {
         Renderer(const Renderer&) = delete;
         Renderer& operator=(const Renderer&) = delete;
 
+#if defined(GARUDA_PLATFORM_WINDOWS)
+        bool Init(const Window& window, bgfx::RendererType::Enum preferredBackend = bgfx::RendererType::Direct3D11);
+#else
         bool Init(const Window& window, bgfx::RendererType::Enum preferredBackend = bgfx::RendererType::Count);
+#endif
         void Shutdown();
 
         void BeginFrame(const Window& window, uint32_t clearColorRGBA = 0x1E1E2EFF);
@@ -28,7 +32,7 @@ namespace Garuda {
         const char* GetBackendName() const;
 
     private:
-        bool m_Initialized;
+        bool m_Initialized = false;
         uint32_t m_Width = 0;
         uint32_t m_Height = 0;
     };

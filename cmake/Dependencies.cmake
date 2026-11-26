@@ -191,7 +191,7 @@ target_include_directories(stb_headers INTERFACE "${stb_SOURCE_DIR}")
 FetchContent_Declare(
         imgui
         GIT_REPOSITORY https://github.com/ocornut/imgui
-        GIT_TAG v1.93.0
+        GIT_TAG v1.93.0-docking
         GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(imgui)

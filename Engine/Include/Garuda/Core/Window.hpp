@@ -5,8 +5,11 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <string_view>
+
+#include "SDL3/SDL_events.h"
 
 struct SDL_Window;
 
@@ -21,6 +24,8 @@ namespace Garuda {
 
     class Window {
     public:
+        using EventCallback = std::function<void(const SDL_Event&)>;
+
         Window() = default;
         ~Window();
 
@@ -31,6 +36,8 @@ namespace Garuda {
         void Destroy();
 
         bool PollEvents();
+
+        void SetEventCallback(EventCallback callback) { m_EventCallback = std::move(callback); }
 
         bool IsOpen() const { return m_Window != nullptr && !m_ShouldClose; }
         bool IsSuspended() const { return m_IsSuspended; }
@@ -51,5 +58,6 @@ namespace Garuda {
         bool m_Resized = false;
         bool m_IsSuspended = false;
         bool m_SurfaceRecreated = false;
+        EventCallback m_EventCallback;
     };
 }

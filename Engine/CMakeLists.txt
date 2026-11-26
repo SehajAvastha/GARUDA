@@ -14,6 +14,10 @@ target_include_directories(GarudaEngine PUBLIC
         "${BX_DIR}/include"
 )
 
+target_include_directories(GarudaEngine PRIVATE
+        "${BGFX_DIR}"
+)
+
 target_compile_definitions(GarudaEngine PUBLIC
         $<$<PLATFORM_ID:Android>:GARUDA_PLATFORM_ANDROID>
         $<$<PLATFORM_ID:Windows>:GARUDA_PLATFORM_WINDOWS>
