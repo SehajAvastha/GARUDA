@@ -6,6 +6,7 @@
 #include <SDL3/SDL_main.h>
 #include "Garuda/Core.hpp"
 #include "Garuda/Core/Window.hpp"
+#include "Garuda/Graphics/Renderer.hpp"
 
 int main(int argc, char* argv[]) {
 
@@ -18,9 +19,19 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        while (window.PollEvents()) {
-            //
+        Garuda::Renderer renderer;
+        if (!renderer.Init(window)) {
+            return 1;
         }
+        while (window.PollEvents()) {
+            if (window.IsSuspended()) continue;
+
+            renderer.BeginFrame(window, 0xFF0000FF);
+            renderer.EndFrame();
+        }
+
+        renderer.Shutdown();
+        window.Destroy();
     }
 
     Garuda::Shutdown();

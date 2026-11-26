@@ -92,9 +92,9 @@ namespace Garuda {
         }
 
         SDL_PropertiesID props = SDL_GetWindowProperties(m_Window);
-#if defined(GARUDA_PLATFORM_WINDOWS)
+#if defined(GARUDA_PLATFORM_WINDOWS) || defined(_WIN32) || defined(_WIN64)
         return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, nullptr);
-#elif defined(GARUDA_PLATFORM_ANDROID)
+#elif defined(GARUDA_PLATFORM_ANDROID) || defined(__ANDROID__)
         return SDL_GetPointerProperty(props, SDL_PROP_WINDOW_ANDROID_WINDOW_POINTER, nullptr);
 #else
         return nullptr;
