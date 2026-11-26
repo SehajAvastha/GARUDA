@@ -151,6 +151,12 @@ namespace Garuda {
                 1,
                 bgfx::TextureFormat::RGBA8,
                 0,
+                nullptr
+            );
+            bgfx::updateTexture2D(
+                handle, 0, 0, 0, 0,
+                static_cast<uint16_t>(tex->Width),
+                static_cast<uint16_t>(tex->Height),
                 bgfx::copy(tex->GetPixels(), static_cast<uint32_t>(tex->GetSizeInBytes()))
             );
             tex->SetTexID(static_cast<ImTextureID>(handle.idx));

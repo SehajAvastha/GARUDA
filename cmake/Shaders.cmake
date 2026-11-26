@@ -1,4 +1,3 @@
-# Compiles bgfx .sc shaders on Windows desktop builds into <bin>/Assets/Shaders/<backend>/
 function(garuda_compile_shaders TARGET_NAME)
     if(ANDROID)
         return()
@@ -17,7 +16,7 @@ function(garuda_compile_shaders TARGET_NAME)
     set(ALL_COMPILED_BINS "")
 
     foreach(BACKEND ${BACKENDS})
-        set(OUT_DIR "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Assets/Shaders/${BACKEND}")
+        set(OUT_DIR "${CMAKE_SOURCE_DIR}/Assets/Shaders/${BACKEND}")
         file(MAKE_DIRECTORY "${OUT_DIR}")
 
         if(BACKEND STREQUAL "dx11")

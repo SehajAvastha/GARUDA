@@ -13,6 +13,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib")
 
 include(cmake/Dependencies.cmake)
+include(cmake/Shaders.cmake)
 
 add_subdirectory(Engine)
 add_subdirectory(Project)

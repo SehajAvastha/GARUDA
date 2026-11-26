@@ -84,7 +84,7 @@ elseif(MINGW)
             CXX="${CMAKE_CXX_COMPILER}"
             AR="${CMAKE_AR}"
             config=release64
-            bgfx bimg bx
+            bgfx bimg bx shaderc
     )
 else()
     # Visual Studio MSVC build via GENie -> MSBuild
@@ -92,10 +92,25 @@ else()
     set(BGFX_OUT_DIR "${BGFX_DIR}/.build/win64_vs2022/bin")
     set(BGFX_LIB_PREFIX "")
     set(BGFX_LIB_EXT ".lib")
-    set(BGFX_CONFIG_SUFFIX "Release")
 
-    set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-windows=10.0 --with-tools vs2022)
-    set(BGFX_BUILD_CMD msbuild "${BGFX_GEN_DIR}/bgfx.sln" /p:Configuration=Release /p:Platform=x64 /t:bgfx;bimg;bx /m)
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(BGFX_CONFIG_SUFFIX "Debug")
+    else()
+        set(BGFX_CONFIG_SUFFIX "Release")
+    endif()
+
+    if(NOT CMAKE_VS_MSBUILD_COMMAND)
+        find_program(CMAKE_VS_MSBUILD_COMMAND msbuild REQUIRED)
+    endif()
+
+    set(BGFX_GENIE_CMD "${BX_DIR}/tools/bin/windows/genie.exe" --with-windows=10.0 --with-dynamic-runtime --with-tools vs2022)
+    set(BGFX_BUILD_CMD
+            ${CMAKE_COMMAND} -E env CL=/FS "${CMAKE_VS_MSBUILD_COMMAND}" "${BGFX_GEN_DIR}/bgfx.vcxproj" /p:Configuration=${BGFX_CONFIG_SUFFIX} /p:Platform=x64 /m
+            COMMAND ${CMAKE_COMMAND} -E env CL=/FS "${CMAKE_VS_MSBUILD_COMMAND}" "${BGFX_GEN_DIR}/bimg.vcxproj" /p:Configuration=${BGFX_CONFIG_SUFFIX} /p:Platform=x64 /m
+            COMMAND ${CMAKE_COMMAND} -E env CL=/FS "${CMAKE_VS_MSBUILD_COMMAND}" "${BGFX_GEN_DIR}/bx.vcxproj" /p:Configuration=${BGFX_CONFIG_SUFFIX} /p:Platform=x64 /m
+            COMMAND ${CMAKE_COMMAND} -E env CL=/FS "${CMAKE_VS_MSBUILD_COMMAND}" "${BGFX_GEN_DIR}/shaderc.vcxproj" /p:Configuration=Release /p:Platform=x64 /m
+    )
+
 endif()
 
 set(BGFX_OUT_LIBS
@@ -211,6 +226,34 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
+
+# File Importing & 3D Support - Assimp (.fbx, .glb, .gltf, .obj, .dae, .blend)
+set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ASSIMP_TOOLS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_SAMPLES OFF CACHE BOOL "" FORCE)
+set(ASSIMP_INSTALL OFF CACHE BOOL "" FORCE)
+set(ASSIMP_NO_EXPORT ON CACHE BOOL "" FORCE)
+set(ASSIMP_WARNINGS_AS_ERRORS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_ZLIB ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_MINIZIP ON CACHE BOOL "" FORCE)
+set(USE_STATIC_CRT OFF CACHE BOOL "" FORCE)
+
+    # Turn Off and Only Only Turn On Needed Ones
+set(ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT OFF CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_FBX_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_GLTF_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_OBJ_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_COLLADA_IMPORTER ON CACHE BOOL "" FORCE)
+set(ASSIMP_BUILD_BLEND_IMPORTER ON CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+        assimp
+        GIT_REPOSITORY https://github.com/assimp/assimp
+        GIT_TAG v6.0.6
+        GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(assimp)
 
 # Networking | Multiplayer - ENet
 set(ENET_BUILD_TESTS OFF CACHE BOOL "" FORCE)

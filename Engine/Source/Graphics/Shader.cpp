@@ -54,7 +54,7 @@ namespace Garuda {
         }
 
         bgfx::ShaderHandle fsh = LoadShader(fragmentPath);
-        if (bgfx::isValid(fsh)) {
+        if (!bgfx::isValid(fsh)) {
             bgfx::destroy(vsh);
             return BGFX_INVALID_HANDLE;
         }

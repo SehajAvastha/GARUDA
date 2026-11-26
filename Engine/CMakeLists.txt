@@ -20,7 +20,8 @@ target_include_directories(GarudaEngine PRIVATE
 
 target_compile_definitions(GarudaEngine PUBLIC
         $<$<PLATFORM_ID:Android>:GARUDA_PLATFORM_ANDROID>
-        $<$<PLATFORM_ID:Windows>:GARUDA_PLATFORM_WINDOWS _WIN32_WINT=0x0A00>
+        $<$<PLATFORM_ID:Windows>:GARUDA_PLATFORM_WINDOWS>
+        $<$<PLATFORM_ID:Windows>:_WIN32_WINNT=0x0A00>
 )
 
 target_link_libraries(GarudaEngine PUBLIC
@@ -33,6 +34,11 @@ target_link_libraries(GarudaEngine PUBLIC
         glm::glm
         stb_headers
         imgui
+        assimp
         enet
         httplib::httplib
 )
+
+if(MSVC)
+    target_compile_options(GarudaEngine PUBLIC /Zc:__cplusplus /Zc:preprocessor /utf-8)
+endif()

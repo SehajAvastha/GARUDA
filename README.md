@@ -37,7 +37,7 @@ GARUDA/
 ## Building GARUDA
 
 ### Prerequisites
-* **C++20 Compiler** (MinGW-s64 GCC or MSVC on Windows; Android NDK r27d+ for Android)
+* **C++20 Compiler** (MSVC and CLang are supported on Windows; Android NDK r27d+ for Android)
 * **CMake 3.24+** & **Ninja / Make**
 * **JDK 17** & **Android SDK** (for Android builds)
 

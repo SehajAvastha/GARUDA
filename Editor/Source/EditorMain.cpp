@@ -11,8 +11,19 @@
 #include <Garuda/Graphics/Framebuffer.hpp>
 #include <Garuda/UI/ImGuiRenderer.hpp>
 
+#include "Garuda/Core/FileSystem.hpp"
+#include "Garuda/Graphics/Model.hpp"
+#include "Garuda/Graphics/Shader.hpp"
+#include "glm/ext/matrix_clip_space.hpp"
+#include "glm/ext/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 int main(int argc, char* argv[]) {
     Garuda::Initialize();
+
+#ifdef GARUDA_SOURCE_ASSETS_DIR
+    Garuda::FileSystem::SetRootPath(GARUDA_SOURCE_ASSETS_DIR);
+#endif
 
     Garuda::Window window;
     if (!window.Create({"GARUDA Editor", 1280, 720, true})) {
@@ -30,16 +41,28 @@ int main(int argc, char* argv[]) {
     }
 
     Garuda::FrameBuffer viewportFbo;
-    viewportFbo.Create(960, 720);
+    viewportFbo.Create(1000, 720);
 
-    ImVec2 viewportSize = { 960.0f, 720.0f };
-    float viewportClearColor[4] = { 0.14f, 0.22f, 0.36f, 1.0f };
+    ImVec2 viewportSize = { 1000.0f, 720.0f };
+    float viewportClearColor[4] = { 0.784313725f, 0.784313725f, 0.784313725f, 1.0f };
     bool firstFrame = true;
+
+    // Load Shader Program
+    bgfx::ProgramHandle basicProgram = Garuda::Shader::LoadProgram("vs_basic", "fs_basic");
+
+    // Custom Cube Import
+    Garuda::Model importedModel;
+    importedModel.LoadFromFile("Models/Cube.gltf");
+    float rotationSpeed = 1.f;
+    float rotationAngle = 0.f;
 
     while (window.PollEvents()) {
         if (window.IsSuspended()) {
             continue;
         }
+
+        // custom modification
+        rotationAngle += ImGui::GetIO().DeltaTime * rotationSpeed;
 
         // Resize offscreen Viewport FBO if panel size changed
         const uint32_t targetW = static_cast<uint32_t>(viewportSize.x);
@@ -58,6 +81,24 @@ int main(int argc, char* argv[]) {
             (static_cast<uint32_t>(viewportClearColor[2] * 255.0f) << 8)  |
             (static_cast<uint32_t>(viewportClearColor[3] * 255.0f));
         viewportFbo.BindAndClear(1, clearRGBA);
+
+        // Submit imported 3D model to View 1
+        if (bgfx::isValid(basicProgram) && importedModel.IsLoaded() && viewportFbo.IsValid()) {
+            const float aspect = static_cast<float>(viewportFbo.GetWidth()) / static_cast<float>(viewportFbo.GetHeight());
+            const glm::mat4 view = glm::lookAtLH(
+                glm::vec3(0.f, 1.5f, -3.5f),
+                glm::vec3(0.f, 0.f, 0.f),
+                glm::vec3(0.f, 1.f, 0.f)
+            );
+            glm::mat4 proj = glm::perspectiveLH_ZO(glm::radians(60.f), aspect, 0.1f, 100.f);
+            if (bgfx::getCaps()->originBottomLeft) {
+                proj = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f)) * proj;
+            }
+            bgfx::setViewTransform(1, glm::value_ptr(view), glm::value_ptr(proj));
+
+            glm::mat4 modelMatrix = glm::rotate(glm::mat4(1.f), rotationAngle, glm::vec3(0.3f, 1.f, 0.f));
+            importedModel.Submit(1, basicProgram, modelMatrix);
+        }
 
         // View 255: Dear ImGui Editor UI
         imgui.BeginFrame();
@@ -103,6 +144,11 @@ int main(int argc, char* argv[]) {
 
         imgui.EndFrame();
         renderer.EndFrame();
+    }
+
+    importedModel.Destroy();
+    if (bgfx::isValid(basicProgram)) {
+        bgfx::destroy(basicProgram);
     }
 
     viewportFbo.Destroy();
