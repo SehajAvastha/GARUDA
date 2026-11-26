@@ -27,4 +27,5 @@ Project/Android/app/.cxx
 
 # .gitignore BGFX compiled .bin shaders
 *.bin
+Assets/Shaders/**/*.bin
 !Assets/**/*.bin
