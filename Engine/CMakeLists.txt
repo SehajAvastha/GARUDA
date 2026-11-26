@@ -20,7 +20,7 @@ target_include_directories(GarudaEngine PRIVATE
 
 target_compile_definitions(GarudaEngine PUBLIC
         $<$<PLATFORM_ID:Android>:GARUDA_PLATFORM_ANDROID>
-        $<$<PLATFORM_ID:Windows>:GARUDA_PLATFORM_WINDOWS>
+        $<$<PLATFORM_ID:Windows>:GARUDA_PLATFORM_WINDOWS _WIN32_WINT=0x0A00>
 )
 
 target_link_libraries(GarudaEngine PUBLIC
@@ -33,4 +33,6 @@ target_link_libraries(GarudaEngine PUBLIC
         glm::glm
         stb_headers
         imgui
+        enet
+        httplib::httplib
 )

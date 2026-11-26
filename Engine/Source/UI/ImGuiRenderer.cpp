@@ -158,15 +158,26 @@ namespace Garuda {
         } else if (tex->Status == ImTextureStatus_WantUpdates) {
             bgfx::TextureHandle handle{ static_cast<uint16_t>(tex->GetTexID()) };
             if (bgfx::isValid(handle)) {
+                const int ux = tex->UpdateRect.x;
+                const int uy = tex->UpdateRect.y;
+                const int uw = tex->UpdateRect.w;
+                const int uh = tex->UpdateRect.h;
+                const bgfx::Memory* mem = bgfx::alloc(static_cast<uint32_t>(uw * uh * tex->BytesPerPixel));
+                const uint8_t* src = static_cast<const uint8_t*>(tex->GetPixelsAt(ux, uy));
+                const int srcPitch = tex->GetPitch();
+                const int dstPitch = uw * tex->BytesPerPixel;
+                for (int row = 0; row < uh; ++row) {
+                    std::memcpy(mem->data + row * dstPitch, src + row * srcPitch, dstPitch);
+                }
                 bgfx::updateTexture2D(
                     handle,
                     0,
                     0,
-                    0,
-                    0,
-                    static_cast<uint16_t>(tex->Width),
-                    static_cast<uint16_t>(tex->Height),
-                    bgfx::copy(tex->GetPixels(), static_cast<uint32_t>(tex->GetSizeInBytes()))
+                    static_cast<uint16_t>(ux),
+                    static_cast<uint16_t>(uy),
+                    static_cast<uint16_t>(uw),
+                    static_cast<uint16_t>(uh),
+                    mem
                 );
             }
             tex->SetStatus(ImTextureStatus_OK);
@@ -204,6 +215,7 @@ namespace Garuda {
         }
 
         bgfx::setViewName(m_ViewId, "ImGui");
+        bgfx::setViewFrameBuffer(m_ViewId, BGFX_INVALID_HANDLE);
         bgfx::setViewMode(m_ViewId, bgfx::ViewMode::Sequential);
         bgfx::setViewRect(m_ViewId, 0, 0, static_cast<uint16_t>(fbWidth), static_cast<uint16_t>(fbHeight));
 

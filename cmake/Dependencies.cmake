@@ -211,3 +211,36 @@ target_include_directories(imgui PUBLIC
 )
 
 target_link_libraries(imgui PUBLIC SDL3::SDL3)
+
+# Networking | Multiplayer - ENet
+set(ENET_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_Declare(
+        enet
+        GIT_REPOSITORY https://github.com/zpl-c/enet
+        GIT_TAG v2.7.2
+        GIT_SHALLOW TRUE
+)
+FetchContent_GetProperties(enet)
+if(NOT enet_POPULATED)
+    FetchContent_Populate(enet)
+endif()
+
+add_library(enet INTERFACE)
+target_include_directories(enet INTERFACE "${enet_SOURCE_DIR}/include")
+
+if(WIN32)
+    target_link_libraries(enet INTERFACE ws2_32 winmm)
+endif()
+
+# Networking | HTTP - cpp-httplib (Header-only)
+set(HTTPLIB_COMPILE OFF CACHE BOOL "" FORCE)
+set(HTTPLIB_INSTALL OFF CACHE BOOL "" FORCE)
+set(HTTPLIB_TEST OFF CACHE BOOL "" FORCE)
+
+FetchContent_Declare(
+        httplib
+        GIT_REPOSITORY https://github.com/yhirose/cpp-httplib
+        GIT_TAG v0.67.0
+        GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(httplib)
