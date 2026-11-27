@@ -11,12 +11,13 @@
 #include <Garuda/Graphics/Framebuffer.hpp>
 #include <Garuda/UI/ImGuiRenderer.hpp>
 
-#include "Garuda/Core/FileSystem.hpp"
-#include "Garuda/Graphics/Model.hpp"
-#include "Garuda/Graphics/Shader.hpp"
-#include "glm/ext/matrix_clip_space.hpp"
-#include "glm/ext/matrix_transform.hpp"
-#include "glm/gtc/type_ptr.hpp"
+#include <Garuda/Core/FileSystem.hpp>
+#include <Garuda/Graphics/Camera.hpp>
+#include <Garuda/Graphics/Model.hpp>
+#include <Garuda/Graphics/Shader.hpp>
+#include <glm/ext/matrix_clip_space.hpp>
+#include <glm/ext/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 int main(int argc, char* argv[]) {
     Garuda::Initialize();
@@ -56,6 +57,12 @@ int main(int argc, char* argv[]) {
     float rotationSpeed = 1.f;
     float rotationAngle = 0.f;
 
+    // Editor Camera
+    Garuda::Camera editorCamera;
+    editorCamera.SetPerspective(60.f, 0.1f, 100.f);
+    editorCamera.SetPosition({ -3.5f, 1.5f, 0.f });
+    editorCamera.LookAt({ 0.f, 0.f, 0.f });
+
     while (window.PollEvents()) {
         if (window.IsSuspended()) {
             continue;
@@ -84,17 +91,11 @@ int main(int argc, char* argv[]) {
 
         // Submit imported 3D model to View 1
         if (bgfx::isValid(basicProgram) && importedModel.IsLoaded() && viewportFbo.IsValid()) {
-            const float aspect = static_cast<float>(viewportFbo.GetWidth()) / static_cast<float>(viewportFbo.GetHeight());
-            const glm::mat4 view = glm::lookAtLH(
-                glm::vec3(0.f, 1.5f, -3.5f),
-                glm::vec3(0.f, 0.f, 0.f),
-                glm::vec3(0.f, 1.f, 0.f)
+            editorCamera.SetViewportSize(
+                static_cast<float>(viewportFbo.GetWidth()),
+                static_cast<float>(viewportFbo.GetHeight())
             );
-            glm::mat4 proj = glm::perspectiveLH_ZO(glm::radians(60.f), aspect, 0.1f, 100.f);
-            if (bgfx::getCaps()->originBottomLeft) {
-                proj = glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, -1.0f, 1.0f)) * proj;
-            }
-            bgfx::setViewTransform(1, glm::value_ptr(view), glm::value_ptr(proj));
+            editorCamera.ApplyToView(1);
 
             glm::mat4 modelMatrix = glm::rotate(glm::mat4(1.f), rotationAngle, glm::vec3(0.3f, 1.f, 0.f));
             importedModel.Submit(1, basicProgram, modelMatrix);
@@ -129,6 +130,28 @@ int main(int argc, char* argv[]) {
         ImGui::Text("FPS: %.1f (%.2f ms)", ImGui::GetIO().Framerate, 1000.f / ImGui::GetIO().Framerate);
         ImGui::Separator();
         ImGui::ColorEdit4("Viewport Clear Color", viewportClearColor);
+        ImGui::Separator();
+        ImGui::Text("Editor Camera");
+        const char* projTypes[] = { "Perspective", "Orthographic" };
+        int currentProj = static_cast<int>(editorCamera.GetProjectionType());
+        if (ImGui::Combo("Projection", &currentProj, projTypes, 2)) {
+            editorCamera.SetProjectionType(static_cast<Garuda::ProjectionType>(currentProj));
+        }
+
+        if (editorCamera.GetProjectionType() == Garuda::ProjectionType::Perspective) {
+            ImGui::SliderFloat("FOV", &editorCamera.GetPerspectiveFOV(), 15.0f, 120.0f);
+            ImGui::DragFloat("Near", &editorCamera.GetPerspectiveNear(), 0.01f, 0.001f, 10.0f);
+            ImGui::DragFloat("Far", &editorCamera.GetPerspectiveFar(), 1.0f, 10.0f, 5000.0f);
+        } else {
+            ImGui::DragFloat("Ortho Size", &editorCamera.GetOrthoSize(), 0.1f, 0.5f, 100.0f);
+            ImGui::DragFloat("Ortho Near", &editorCamera.GetOrthoNear(), 0.5f, -1000.0f, 0.0f);
+            ImGui::DragFloat("Ortho Far", &editorCamera.GetOrthoFar(), 0.5f, 1.0f, 1000.0f);
+        }
+
+        ImGui::DragFloat3("Position", &editorCamera.GetPosition().x, 0.05f);
+        if (ImGui::DragFloat3("Rotation", &editorCamera.GetRotation().x, 0.5f)) {
+            editorCamera.SetRotation(editorCamera.GetRotation());
+        }
         ImGui::End();
 
         // 2. Live Offscreen Viewport Panel
